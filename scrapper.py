@@ -29,15 +29,15 @@ def extract_and_upload_article(article_url, collection):
         title_tag = soup.find('h1')  # Adjust if the title uses a different tag
         title = title_tag.get_text(strip=True) if title_tag else "No Title"
 
-        # Extract content with tags
-        content_data = []
+        # Group content by tags
+        content_data = {}
         content_tags = soup.find_all(['p', 'h2', 'h3', 'li', 'img'])  # Add more tags if needed
         for tag in content_tags:
-            content_item = {
-                "tag": tag.name,
-                "content": tag.get_text(strip=True) if tag.name != 'img' else tag.get('src', 'No Image')
-            }
-            content_data.append(content_item)
+            tag_name = tag.name
+            content = tag.get_text(strip=True) if tag_name != 'img' else tag.get('src', 'No Image')
+            if tag_name not in content_data:
+                content_data[tag_name] = []
+            content_data[tag_name].append(content)
 
         # Prepare the article data
         article_data = {
