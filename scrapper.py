@@ -29,15 +29,29 @@ def extract_and_upload_article(article_url, collection):
         title_tag = soup.find('h1')  # Adjust if the title uses a different tag
         title = title_tag.get_text(strip=True) if title_tag else "No Title"
 
-        # Group content by tags
+        # Group content by tags with additional details
         content_data = {}
         content_tags = soup.find_all(['p', 'h2', 'h3', 'li', 'img'])  # Add more tags if needed
         for tag in content_tags:
             tag_name = tag.name
-            content = tag.get_text(strip=True) if tag_name != 'img' else tag.get('src', 'No Image')
+            # Extract details
+            text = tag.get_text(strip=True) if tag_name != 'img' else None
+            src = tag.get('src') if tag_name == 'img' else None
+            alt = tag.get('alt') if tag_name == 'img' else None
+            class_attr = tag.get('class', [])
+            
+            # Prepare content item
+            content_item = {
+                "text": text,
+                "src": src,
+                "alt": alt,
+                "class": class_attr
+            }
+
+            # Add to grouped data
             if tag_name not in content_data:
                 content_data[tag_name] = []
-            content_data[tag_name].append(content)
+            content_data[tag_name].append(content_item)
 
         # Prepare the article data
         article_data = {
@@ -81,6 +95,6 @@ def scrape_indian_express_homepage(url, collection):
 
 # Main function
 if __name__ == "__main__":
-    homepage_url = "https://indianexpress.com/"  # Replace with the correct homepage URL
+    homepage_url = "https://timesofindia.indiatimes.com/"  # Replace with the correct homepage URL
     news_collection = connect_to_mongodb()
     scrape_indian_express_homepage(homepage_url, news_collection)

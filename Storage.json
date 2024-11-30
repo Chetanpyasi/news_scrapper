@@ -1,0 +1,16 @@
+{
+  "url": "Website_URL",
+  "title": "Sample Article Title",
+  "content": {
+    "p": [
+      {"text": "Paragraph 1", "class": ["text-class"]},
+      {"text": "Paragraph 2", "class": ["text-class", "highlight"]}
+    ],
+    "img": [
+      {"src": "image1.jpg", "alt": "Image description", "class": ["image-class"]}
+    ],
+    "h2": [
+      {"text": "Header Text", "class": ["header-class"]}
+    ]
+  }
+}
