@@ -14,8 +14,8 @@ def connect_to_mongodb():
     collection = db[COLLECTION_NAME]
     return collection
 
-# Function to extract article content
-def extract_article_content(article_url):
+# Function to extract article content and upload to MongoDB
+def extract_and_upload_article(article_url, collection):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
     }
@@ -39,13 +39,21 @@ def extract_article_content(article_url):
             }
             content_data.append(content_item)
 
-        return {"title": title, "content": content_data}
+        # Prepare the article data
+        article_data = {
+            "url": article_url,
+            "title": title,
+            "content": content_data
+        }
+
+        # Insert the article into MongoDB
+        collection.insert_one(article_data)
+        print(f"Inserted article: {title}")
 
     except Exception as e:
-        print(f"Error while extracting article: {e}")
-        return None
+        print(f"Error while extracting article from {article_url}: {e}")
 
-# Function to scrape the Indian Express homepage
+# Function to scrape the Indian Express homepage and process each article
 def scrape_indian_express_homepage(url, collection):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
@@ -59,31 +67,17 @@ def scrape_indian_express_homepage(url, collection):
         # Find all links to news articles
         article_links = soup.find_all('a', href=True)  # Adjust selectors if needed
         base_url = "https://indianexpress.com"
-        scraped_data = []
-
+        
         for link in article_links:
             article_url = link['href']
             if not article_url.startswith("http"):
                 article_url = base_url + article_url
 
             print(f"Scraping article: {article_url}")
-            article_content = extract_article_content(article_url)
-            if article_content:
-                scraped_data.append({
-                    "url": article_url,
-                    "title": article_content['title'],
-                    "content": article_content['content']
-                })
-
-        # Insert data into MongoDB
-        if scraped_data:
-            collection.insert_many(scraped_data)
-            print(f"Inserted {len(scraped_data)} articles into the database.")
-        else:
-            print("No articles found to insert.")
+            extract_and_upload_article(article_url, collection)
 
     except Exception as e:
-        print(f"Error occurred: {e}")
+        print(f"Error occurred while scraping homepage: {e}")
 
 # Main function
 if __name__ == "__main__":
